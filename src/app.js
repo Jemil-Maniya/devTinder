@@ -2,20 +2,18 @@ const express = require("express");
 
 const app = express();
 
-app.use("/nodemon", (req, res)=> {
-    res.send("IS NODEMON WORKING ?")
-})
+// app.use((req, res) => {
+//   res.send("NAMASTE DEVLOPERS");
+// });
 
-app.use("/use",(req,res)=>{
-    res.send("START SCRIPT or dev script")
-})
+app.get("/user/:userID/:lastname", (req, res) => {
+  console.log(req.query)
+  console.log(req.params);
+  res.send({ name: "Jemil", password: "nothing" });
+});
 
-app.use("/test",(req, res)=> {
-    res.send("TESTING IS OKAY ?")
-})
-
-app.use((req, res) => {
-  res.send("NAMASTE DEVLOPERS");
+app.post("/user", (req, res) => {
+  res.send({ name: "nothing to post", password: "no password" });
 });
 
 app.listen(7777, () => {
