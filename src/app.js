@@ -6,25 +6,17 @@ const app = express();
 //   res.send("NAMASTE DEVLOPERS");
 // });
 
+const { useAuth, isAdminAuth } = require("./middleware/auth");
 
+app.use("/user", useAuth);
 
-app.get("/user", (req, res, next) => {
-console.log(" 1st route without")
-next()
-},
-(req, res, next)=>{
-console.log("2nd route without")
-next()
-}, (req, res, next)=>{
-  console.log("3rd rouye without")
-  next()
-}, (req, res, next)=> {
-  console.log("4th rouye without")
-  next()
-},
-(req, res)=> {
-  console.log("5th route with response")
-  res.send("finally get the working route!")
+app.get("/user/login", (req, res, next) => {
+  console.log("GET ALL USER");
+  res.send("YOU ARE LOGIN SUCCESSFULLY");
+});
+
+app.get("/admin", isAdminAuth, (req, res) => {
+  res.status(200).send("YOU ARE A ADMIN");
 });
 
 app.listen(7777, () => {
