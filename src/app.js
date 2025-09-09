@@ -6,25 +6,31 @@ const app = express();
 //   res.send("NAMASTE DEVLOPERS");
 // });
 
-const { useAuth, isAdminAuth } = require("./middleware/auth");
+const connectDB = require("./config/database");
+const User = require("./models/user");
 
-app.use("/user", useAuth);
-
-app.get("/user/login", (req, res, next) => {
-  console.log("GET ALL USER");
-  res.send("YOU ARE LOGIN SUCCESSFULLY");
-});
-
-app.get("/admin", isAdminAuth, (req, res) => {
-  res.status(200).send("YOU ARE A ADMIN");
-});
-
-app.use("/", (err, req, res) => {
-  if (err) {
-    res.send("SOMETHING WENT WRONG INTERNAL ERROR");
+app.post("/signUp", async (req, res) => {
+  const user = new User({
+    firstName: "jemil",
+    lastName: "maniya",
+    email: "jemilmaniya@gmail.com",
+    password: "jemil123",
+  });
+  try {
+    await user.save();
+    res.send("USER ADDED ");
+  } catch (error) {
+    console.log("ERROR USER NOT ADDED");
   }
 });
 
-app.listen(7777, () => {
-  console.log("SERVER IS LISTENING YOUR REQUEST");
-});
+connectDB()
+  .then(() => {
+    console.log("DB CONNECTED");
+    app.listen(7777, () => {
+      console.log("SERVER IS LISTENING ON PORT 7777");
+    });
+  })
+  .catch(() => {
+    console.log("DB NOT CONNECTED");
+  });
