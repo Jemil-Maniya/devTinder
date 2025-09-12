@@ -13,22 +13,58 @@ const User = require("./models/user");
 
 app.use(express.json());
 
+app.patch("/user", async (req, res) => {
+  const data = req.body;
+  const user = await User.findByIdAndUpdate(req.body.userid, data, {
+    returnDocument: "after",
+  });
+  try {
+    res.send(user);
+  } catch (err) {
+    console.log("/user put api err");
+  }
+});
+
+app.delete("/user", async (req, res) => {
+  try {
+    const users = await User.findByIdAndDelete(req.body.userid);
+    res.send("USER DELETED");
+  } catch (err) {}
+});
+
 app.get("/feed", async (req, res) => {
   try {
     const users = await User.find({});
-    res.send(users);
+    if (!users) {
+      res.send("NOTHING TOP WATCH");
+    } else {
+      res.send(users);
+    }
+  } catch {
+    console.log("get /feed error");
+  }
+});
+
+app.get("/user", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.emailid });
+    if (!user) {
+      res.send("NO USER FOUND");
+    } else {
+      res.send(user);
+    }
   } catch (err) {
-    console.log("/Feed error");
+    console.log("get /user error");
   }
 });
 
 app.post("/signUp", async (req, res) => {
+  const user = new User(req.body);
   try {
-    const user = new User(req.body);
     await user.save();
-    res.send("USER ADDED");
+    res.semd("USER ADDED");
   } catch (err) {
-    console.log("USER NOT ADDED");
+    console.log("POST /signUp error");
   }
 });
 
