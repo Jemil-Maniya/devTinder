@@ -17,6 +17,7 @@ app.patch("/user", async (req, res) => {
   const data = req.body;
   const user = await User.findByIdAndUpdate(req.body.userid, data, {
     returnDocument: "after",
+    runValidators: true,
   });
   try {
     res.send(user);
@@ -62,9 +63,10 @@ app.post("/signUp", async (req, res) => {
   const user = new User(req.body);
   try {
     await user.save();
-    res.semd("USER ADDED");
+    res.send("USER ADDED");
   } catch (err) {
     console.log("POST /signUp error");
+    res.send(err.message);
   }
 });
 
