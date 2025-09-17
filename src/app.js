@@ -15,14 +15,22 @@ app.use(express.json());
 
 app.patch("/user", async (req, res) => {
   const data = req.body;
-  const user = await User.findByIdAndUpdate(req.body.userid, data, {
-    returnDocument: "after",
-    runValidators: true,
-  });
   try {
+    const UPDATE_ALLOWED = ["userid", "photoUrl", "about", "gender", "skills"];
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      UPDATE_ALLOWED.includes(k)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("YOU CAN NOT CHANGE THIS FIELD");
+    }
+    const user = await User.findByIdAndUpdate(req.body.userid, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
     res.send(user);
   } catch (err) {
     console.log("/user put api err");
+    res.send(err.message);
   }
 });
 
@@ -62,6 +70,13 @@ app.get("/user", async (req, res) => {
 app.post("/signUp", async (req, res) => {
   const user = new User(req.body);
   try {
+    const POST_ALLOWED = ["email", "password", "firstName", "lastName"];
+    const isPostAllowed = Object.keys(user).every((k) =>
+      POST_ALLOWED.includes(k)
+    );
+    if(!isPostAllowed) {
+      throw new Error("INVALID INPUT")
+    }
     await user.save();
     res.send("USER ADDED");
   } catch (err) {
