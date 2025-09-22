@@ -102,10 +102,9 @@ app.post("/login", async (req, res) => {
     if (!user) {
       throw new Error("Invalid Credentials - email");
     }
-    const passwordHash = user.password;
-    const isValidPassword = await bcrypt.compare(password, passwordHash);
+    const isValidPassword = await user.validatePassword(password);
     if (isValidPassword) {
-      const token = jwt.sign({ _id: user._id }, "123", { expiresIn: "7d" });
+      const token = await user.getJWT();
       res.cookie("token", token);
       res.send("Login succesful");
     } else {
@@ -113,7 +112,7 @@ app.post("/login", async (req, res) => {
     }
     console.log(user);
   } catch (err) {
-    res.send("Login Problem");
+    res.send("Login Problem" + err.message);
   }
 });
 
