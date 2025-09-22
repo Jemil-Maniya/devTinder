@@ -1,6 +1,8 @@
 const express = require("express");
 const { signUpValidator } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { useAuth } = require("./middleware/auth");
 
 const app = express();
 
@@ -10,10 +12,12 @@ const app = express();
 
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const cookieParser = require("cookie-parser");
 
 // if we want to make the data from the end user then we have to call the express.json in the app.use
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.patch("/user", async (req, res) => {
   const data = req.body;
@@ -100,13 +104,26 @@ app.post("/login", async (req, res) => {
     }
     const passwordHash = user.password;
     const isValidPassword = await bcrypt.compare(password, passwordHash);
-    if (!isValidPassword) {
+    if (isValidPassword) {
+      const token = jwt.sign({ _id: user._id }, "123", { expiresIn: "7d" });
+      res.cookie("token", token);
+      res.send("Login succesful");
+    } else {
       throw new Error("Invalid Credentials - password");
     }
-    res.send("Login succesful");
     console.log(user);
   } catch (err) {
     res.send("Login Problem");
+  }
+});
+
+app.get("/profile", useAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    // console.log(req)
+    res.send(user);
+  } catch (err) {
+    res.send("profile API Error" + err.message);
   }
 });
 
