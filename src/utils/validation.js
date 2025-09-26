@@ -1,4 +1,5 @@
 const validator = require("validator");
+const bcrypt = require("bcrypt");
 
 const signUpValidator = (req) => {
   const { firstName, lastName, email, password } = req.body;
@@ -21,9 +22,7 @@ const editProfileValidator = (req) => {
     "about",
     "skills",
   ];
-
   const allowedGender = ["male", "female"];
-
   const isEditableGender = allowedGender.includes(
     req.body.gender && req.body.gender.toLowerCase()
   );
@@ -51,4 +50,27 @@ const editProfileValidator = (req) => {
   return editableFields;
 };
 
-module.exports = { signUpValidator, editProfileValidator };
+const forgotPasswordValidator = async (req) => {
+  const { crrPassword, newPassword } = req.body;
+  const loggedInUser = req.user;
+  const decryptPassword = await bcrypt.compare(
+    crrPassword,
+    loggedInUser.password
+  );
+  if (!decryptPassword) {
+    throw new Error("Current Password is Wrong");
+  }
+
+  const bcryptNewPassword = await bcrypt.hash(newPassword, 10);
+
+  console.log(crrPassword);
+  console.log(newPassword);
+  console.log(bcryptNewPassword);
+  return bcryptNewPassword;
+};
+
+module.exports = {
+  signUpValidator,
+  editProfileValidator,
+  forgotPasswordValidator,
+};

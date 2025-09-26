@@ -1,6 +1,9 @@
 const express = require("express");
 const { useAuth } = require("../middleware/auth");
-const { editProfileValidator } = require("../utils/validation");
+const {
+  editProfileValidator,
+  forgotPasswordValidator,
+} = require("../utils/validation");
 
 const profileRouter = express.Router();
 
@@ -25,6 +28,18 @@ profileRouter.patch("/profile/edit", useAuth, async (req, res) => {
     res.send(`${loggedInUser.firstName}, "Your PRofile Updated"`);
   } catch (err) {
     res.send("Error:" + err.message);
+  }
+});
+
+profileRouter.patch("/profile/password", useAuth, async (req, res) => {
+  try {
+    const newHashedPassword = await forgotPasswordValidator(req);
+    const loggedInUser = req.user;
+    loggedInUser.password = newHashedPassword;
+    await loggedInUser.save();
+    res.send("password Updated")
+  } catch (err) {
+    res.send("Error: " + err.message);
   }
 });
 
