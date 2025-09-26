@@ -3,21 +3,26 @@ const { signUpValidator } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { useAuth } = require("./middleware/auth");
-
-const app = express();
-
-// app.use((req, res) => {
-//   res.send("NAMASTE DEVLOPERS");
-// });
-
 const connectDB = require("./config/database");
 const User = require("./models/user");
 const cookieParser = require("cookie-parser");
+const authRouter = require("./routers/authRouter");
+const profileRouter = require("./routers/profileRouter");
 
+const app = express();
 // if we want to make the data from the end user then we have to call the express.json in the app.use
 
 app.use(express.json());
 app.use(cookieParser());
+app.use("/", authRouter);
+app.use("/", profileRouter);
+
+
+
+
+
+
+
 
 app.patch("/user", async (req, res) => {
   const data = req.body;
@@ -70,59 +75,6 @@ app.get("/user", async (req, res) => {
     }
   } catch (err) {
     console.log("get /user error");
-  }
-});
-
-app.post("/signup", async (req, res) => {
-  try {
-    signUpValidator(req);
-    const { firstName, lastName, email, password } = req.body;
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password: passwordHash,
-    });
-    await user.save();
-    res.send("User Created / Sign up success");
-  } catch (err) {
-    console.log("Signup Api error");
-    res.send(err.message);
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      throw new Error("Enter a valid email or password");
-    }
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      throw new Error("Invalid Credentials - email");
-    }
-    const isValidPassword = await user.validatePassword(password);
-    if (isValidPassword) {
-      const token = await user.getJWT();
-      res.cookie("token", token);
-      res.send("Login succesful");
-    } else {
-      throw new Error("Invalid Credentials - password");
-    }
-    console.log(user);
-  } catch (err) {
-    res.send("Login Problem" + err.message);
-  }
-});
-
-app.get("/profile", useAuth, async (req, res) => {
-  try {
-    const user = req.user;
-    // console.log(req)
-    res.send(user);
-  } catch (err) {
-    res.send("profile API Error" + err.message);
   }
 });
 
