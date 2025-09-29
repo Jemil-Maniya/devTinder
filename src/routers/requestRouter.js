@@ -1,6 +1,6 @@
 const express = require("express");
-const connectionrequestModel = require("../models/connectionRequest");
 const { useAuth } = require("../middleware/auth");
+const connectionRequestModel = require("../models/connectionRequest");
 
 const requestRouter = express.Router();
 
@@ -9,40 +9,34 @@ requestRouter.post(
   useAuth,
   async (req, res) => {
     try {
-      const user = req.user;
+      const fromUserId = req.user._id;
       const { toUserId, status } = req.params;
-      const fromUserId = user._id;
       const allowedStatus = ["intrested", "ignored"];
-      if (!allowedStatus.includes(status)) {
-        throw new Error("invalid status");
+      if(!allowedStatus.includes(status)){
+        throw new Error("Invalid STATUS")
       }
-
-      const existingUser = await connectionrequestModel.findOne({
+      const alreadyPresent = await connectionRequestModel.findOne({
         $or: [
-          {
-            toUserId,
-            fromUserId,
-          },
-          {
-            toUserId: fromUserId,
-            fromUserId: toUserId,
-          },
+          { toUserId, fromUserId },
+          { toUserId: fromUserId, fromUserId: toUserId },
         ],
       });
-
-      if (existingUser) {
-        throw new Error("Request is already sended");
+      if (alreadyPresent) {
+        throw new Error("request is already present");
       }
-      const connectionRequestInstance = new connectionrequestModel({
+
+      const connectionRequest = new connectionRequestModel({
         toUserId,
         fromUserId,
         status,
       });
-
-      const data = await connectionRequestInstance.save();
-      res.send("Success" + data);
+      const data = await connectionRequest.save();
+      res.json({
+        message: "success",
+        data,
+      });
     } catch (err) {
-      res.send("ERROR : " + err.message);
+      res.send("Error :" + err.message);
     }
   }
 );
