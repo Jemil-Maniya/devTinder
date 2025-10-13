@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      // select: false,
       minLength: 7,
       maxLength: 80,
     },
@@ -89,6 +90,6 @@ userSchema.methods.validatePassword = async function (passwordInputByUser) {
   return isPasswordValid;
 };
 
-const User = mongoose.model("user", userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

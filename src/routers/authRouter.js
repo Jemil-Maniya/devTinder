@@ -38,7 +38,13 @@ authRouter.post("/login", async (req, res) => {
     if (isValidPassword) {
       const token = await user.getJWT();
       res.cookie("token", token);
-      res.send("Login succesful");
+
+      // hide to show pass in res
+      const userObj = user.toObject();
+      delete userObj.password;
+      delete userObj.__v
+
+      res.json({ data :userObj });
     } else {
       throw new Error("Invalid Credentials - password");
     }
@@ -52,6 +58,6 @@ authRouter.post("/logout", async (req, res) => {
   res.cookie("token", null, {
     expires: new Date(Date.now()),
   });
-  res.send("LogOut")
+  res.send("LogOut");
 });
 module.exports = authRouter;
