@@ -7,6 +7,7 @@ const {
 
 const profileRouter = express.Router();
 
+
 profileRouter.get("/profile", useAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -20,12 +21,15 @@ profileRouter.get("/profile", useAuth, async (req, res) => {
 profileRouter.patch("/profile/edit", useAuth, async (req, res) => {
   try {
     if (!editProfileValidator(req)) {
-      throw new Error("Can not edit the profile");
+      throw new Error("Can not edit the profaile");
     }
     const loggedInUser = req.user;
     Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
     await loggedInUser.save();
-    res.send(`${loggedInUser.firstName}, "Your PRofile Updated"`);
+    res.json({
+      message: `${loggedInUser.firstName}, "Your PRofile Updated"`,
+      data: loggedInUser,
+    });
   } catch (err) {
     res.send("Error:" + err.message);
   }
@@ -37,7 +41,7 @@ profileRouter.patch("/profile/password", useAuth, async (req, res) => {
     const loggedInUser = req.user;
     loggedInUser.password = newHashedPassword;
     await loggedInUser.save();
-    res.send("password Updated")
+    res.send("password Updated");
   } catch (err) {
     res.send("Error: " + err.message);
   }

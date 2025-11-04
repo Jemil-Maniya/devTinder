@@ -122,8 +122,8 @@ requestRouter.get("/user/connections", useAuth, async (req, res) => {
       { status: "accepted", fromUserId: loggedInUser._id },
     ],
   }).populate([
-    { path: "fromUserId", select: "firstName lastName" },
-    { path: "toUserId", select: "firstName lastName" },
+    { path: "fromUserId", select: "firstName lastName age gender about photoUrl" },
+    { path: "toUserId", select: "firstName lastName age gender about photoUrl" },
   ]);
   if (!getAllConnections) {
     throw new Error("No any connections");

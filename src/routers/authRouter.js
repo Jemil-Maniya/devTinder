@@ -16,8 +16,10 @@ authRouter.post("/signup", async (req, res) => {
       email,
       password: passwordHash,
     });
+    const token = await user.getJWT();
+    res.cookie("token", token);
     await user.save();
-    res.send("User Created / Sign up success");
+    res.json({ message: "User Created / Sign up success", data: user });
   } catch (err) {
     console.log("Signup Api error");
     res.send(err.message);
@@ -40,11 +42,11 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token);
 
       // hide to show pass in res
-      const userObj = user.toObject();
-      delete userObj.password;
-      delete userObj.__v
+      // const userObj = user.toObject();
+      // delete userObj.password;
+      // delete userObj.__v
 
-      res.json({ data :userObj });
+      res.json({ data: user });
     } else {
       throw new Error("Invalid Credentials - password");
     }
