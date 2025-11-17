@@ -11,25 +11,19 @@ const profileRouter = require("./routers/profileRouter");
 const requestRouter = require("./routers/requestRouter");
 const userRouter = require("./routers/userRouter");
 const cors = require("cors");
+require("dotenv").config();
+
 
 const app = express();
 // if we want to make the data from the end user then we have to call the express.json in the app.use
 
-
-
-
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend URL
+    origin: process.env.FRONTEND_URL, // frontend URL
     credentials: true, // allow cookies
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
   })
 );
-
-
-
-
-
 
 app.use(express.json());
 app.use(cookieParser());
@@ -95,7 +89,7 @@ app.use("/", userRouter);
 connectDB()
   .then(() => {
     console.log("DB CONNECTED");
-    app.listen(7777, () => {
+    app.listen(process.env.PORT, () => {
       console.log("SERVER IS LISTENING ON PORT 7777");
     });
   })
