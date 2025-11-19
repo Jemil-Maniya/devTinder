@@ -10,9 +10,11 @@ const authRouter = require("./routers/authRouter");
 const profileRouter = require("./routers/profileRouter");
 const requestRouter = require("./routers/requestRouter");
 const userRouter = require("./routers/userRouter");
+const messageRouter = require("./routers/messageRouter");
 const cors = require("cors");
+const http = require("http");
+const initializeSocket = require("./utils/socket");
 require("dotenv").config();
-
 
 const app = express();
 // if we want to make the data from the end user then we have to call the express.json in the app.use
@@ -31,6 +33,7 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+app.use("/api/messages", messageRouter);
 
 // app.patch("/user", async (req, res) => {
 //   const data = req.body;
@@ -86,10 +89,19 @@ app.use("/", userRouter);
 //   }
 // });
 
+// SOCKET.io
+
+const server = http.createServer(app);
+const io = initializeSocket(server, {
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+});
+
+app.set("io", io);
+
 connectDB()
   .then(() => {
     console.log("DB CONNECTED");
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log("SERVER IS LISTENING ON PORT 7777");
     });
   })
