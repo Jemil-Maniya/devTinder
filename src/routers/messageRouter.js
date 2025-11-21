@@ -8,7 +8,7 @@ const ConnectionRequestModel = require("../models/connectionRequest");
 // GET /api/messages/:userA/:userB?limit=100
 // returns messages between userA and userB (oldest -> newest)
 // server computes fromSelf using authenticated user
-messageRouter.get("/:userA/:userB", useAuth, async (req, res) => {
+messageRouter.get("/messages/:userA/:userB", useAuth, async (req, res) => {
   const { userA, userB } = req.params;
   const limit = Math.min(500, parseInt(req.query.limit || "200", 10));
 
@@ -62,7 +62,7 @@ messageRouter.get("/:userA/:userB", useAuth, async (req, res) => {
 
 // POST /api/messages/send
 // Body: { from, to, text, meta }
-messageRouter.post("/send", useAuth, async (req, res) => {
+messageRouter.post("/messages/send", useAuth, async (req, res) => {
   try {
     const { from, to, text, meta } = req.body;
 

@@ -33,7 +33,7 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
-app.use("/api/messages", messageRouter);
+app.use("/", messageRouter);
 
 // app.patch("/user", async (req, res) => {
 //   const data = req.body;
