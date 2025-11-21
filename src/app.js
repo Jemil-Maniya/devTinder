@@ -94,8 +94,9 @@ app.use("/api/messages", messageRouter);
 const server = http.createServer(app);
 const io = initializeSocket(server, {
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  // use default /socket.io in development, /api/socket.io in production
+  path: process.env.NODE_ENV === "production" ? "/api/socket.io" : "/socket.io",
 });
-
 app.set("io", io);
 
 connectDB()

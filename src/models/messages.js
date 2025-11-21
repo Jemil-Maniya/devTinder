@@ -11,7 +11,7 @@ const messageSchema = new mongoose.Schema(
       enum: ["sent", "delivered", "read"],
       default: "sent",
     },
-    meta: { type: mongoose.Schema.Types.Mixed }, 
+    meta: { type: mongoose.Schema.Types.Mixed },
   },
   { timestamps: true }
 );

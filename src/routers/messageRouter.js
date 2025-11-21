@@ -1,9 +1,9 @@
-// routes/messageRouter.js
 const express = require("express");
 const messageRouter = express.Router();
 const mongoose = require("mongoose");
 const Message = require("../models/messages");
 const { useAuth } = require("../middleware/auth");
+const ConnectionRequestModel = require("../models/connectionRequest");
 
 // GET /api/messages/:userA/:userB?limit=100
 // returns messages between userA and userB (oldest -> newest)
@@ -82,6 +82,19 @@ messageRouter.post("/send", useAuth, async (req, res) => {
       !mongoose.Types.ObjectId.isValid(to)
     ) {
       return res.status(400).json({ ok: false, error: "Invalid from/to id" });
+    }
+
+    const isConnected = await ConnectionRequestModel.findOne({
+      $or: [
+        { fromUserId: sender, toUserId: to, status: "accepted" },
+        { fromUserId: to, toUserId: sender, status: "accepted" },
+      ],
+    });
+
+    if (!isConnected) {
+      return res
+        .status(403)
+        .json({ ok: false, error: "You are not connected with this user" });
     }
 
     const created = await Message.create({

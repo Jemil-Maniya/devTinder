@@ -4,6 +4,8 @@ const Message = require("../models/messages");
 
 const initializeSocket = (server, options = {}) => {
   const io = socketIO(server, {
+    // use provided path (e.g. "/api/socket.io") or default "/socket.io"
+    path: options.path || "/socket.io",
     cors: {
       origin: options.origin || "*",
       credentials: true,
@@ -15,11 +17,10 @@ const initializeSocket = (server, options = {}) => {
 
   const addSocketForUser = (userId, socketId) => {
     const s = userSockets.get(userId) || new Set();
-    const wasOffline = !userSockets.has(userId); // true if this is first socket
+    const wasOffline = !userSockets.has(userId);
     s.add(socketId);
     userSockets.set(userId, s);
 
-    // If this was the first socket for the user, broadcast userOnline
     if (wasOffline) {
       io.emit("userOnline", { userId });
       console.log("PRESENCE: userOnline ->", userId);
@@ -32,7 +33,6 @@ const initializeSocket = (server, options = {}) => {
     s.delete(socketId);
     if (s.size === 0) {
       userSockets.delete(userId);
-      // user became fully offline -> broadcast
       io.emit("userOffline", { userId });
       console.log("PRESENCE: userOffline ->", userId);
     } else {
@@ -50,7 +50,6 @@ const initializeSocket = (server, options = {}) => {
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    // JOIN with ack: socket.emit("join", userId, cb)
     socket.on("join", async (userId, cb) => {
       try {
         if (!userId) {
@@ -60,7 +59,7 @@ const initializeSocket = (server, options = {}) => {
 
         userId = String(userId);
         socket.join(userId);
-        socket.data.userId = userId; // keep on socket for cleanup
+        socket.data.userId = userId;
         addSocketForUser(userId, socket.id);
 
         console.log(`Socket ${socket.id} joined room ${userId}`);
@@ -93,7 +92,6 @@ const initializeSocket = (server, options = {}) => {
             };
             socket.emit("receiveMessage", messageForEmit);
             try {
-              // mark delivered after replay
               await Message.findByIdAndUpdate(m._id, { status: "delivered" });
             } catch (updErr) {
               console.error("Error updating pending message status:", updErr);
@@ -110,7 +108,6 @@ const initializeSocket = (server, options = {}) => {
       }
     });
 
-    // RPC: checkOnline -> returns { ok:true, online: boolean }
     socket.on("checkOnline", (targetUserId, cb) => {
       try {
         const s = userSockets.get(String(targetUserId));
@@ -123,7 +120,6 @@ const initializeSocket = (server, options = {}) => {
       }
     });
 
-    // payload: { from, to, text, meta } with optional ack cb
     socket.on("sendMessage", async (payload, cb) => {
       try {
         const { from, to, text, meta } = payload || {};
@@ -157,42 +153,21 @@ const initializeSocket = (server, options = {}) => {
           time: created.time,
           status: created.status,
           meta: created.meta || {},
+          clientId: payload.clientId, // <-- echo clientId back for reliable client-side dedupe
         };
 
-        // debug: which sockets/rooms exist
         const toRoom = String(messageForEmit.to);
         const fromRoom = String(messageForEmit.from);
-        const toSockets = userSockets.get(toRoom);
-        const fromSockets = userSockets.get(fromRoom);
 
         console.log(
           "DEBUG: before emit - adapter rooms contains toRoom?",
           !!io.sockets.adapter.rooms.get(toRoom)
         );
-        console.log(
-          "DEBUG: tracked toSockets:",
-          toSockets ? Array.from(toSockets) : "none",
-          "tracked fromSockets:",
-          fromSockets ? Array.from(fromSockets) : "none"
-        );
 
-        // Emit to recipient and sender rooms (primary)
+        // Emit to recipient and sender rooms ONCE (do not double-emit)
         io.to(toRoom).emit("receiveMessage", messageForEmit);
         io.to(fromRoom).emit("messageSent", messageForEmit);
 
-        // Also emit directly to tracked socket ids for extra reliability
-        if (toSockets) {
-          for (const sid of toSockets) {
-            io.to(sid).emit("receiveMessage", messageForEmit);
-          }
-        }
-        if (fromSockets) {
-          for (const sid of fromSockets) {
-            io.to(sid).emit("messageSent", messageForEmit);
-          }
-        }
-
-        // debug: check adapter state after emit
         console.log("Emitted message", messageForEmit.id, "to room", toRoom);
         console.log(
           "DEBUG: adapter.rooms.get(toRoom) ->",
